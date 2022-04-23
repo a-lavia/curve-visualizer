@@ -1,5 +1,6 @@
 const parameters = {
   sphereRadius: 1.0,
+  latitude: 0.0,
   observerHeight: 1.0,
   targetHeight: 1.0,
   targetDistance: 1.0
@@ -23,11 +24,25 @@ var renderer = new THREE.WebGLRenderer({antialias: true});
 function initCanvas() {
   renderer.setSize(dimWidth, dimHeight);
   renderer.setClearColor(0x93d3fb, 1);
+  worldCamera.position.z = 20;
   document.body.appendChild(renderer.domElement);
 }
 
 function initScene() {
+  let ambientLight = new THREE.AmbientLight(0x666666);
+  scene.add(ambientLight);
+
+  let directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight.position.set(5,3,5);
+  scene.add(directionalLight);
+
   scene.add(createSphere());
+  scene.add(createCircle());
+}
+
+function updateScene() {
+  updateSphere();
+  updateCircle();
 }
 
 function updateSphere() {
@@ -37,18 +52,51 @@ function updateSphere() {
   sphere.scale.z = parameters.sphereRadius;
 }
 
+function updateCircle() {
+  let circle = scene.getObjectByName('circle');
+  let circleRadius = latitudeRadius();
+  let circleY = yPosition();
+  circle.scale.x = circleRadius;
+  circle.scale.y = circleRadius;
+  circle.scale.z = circleRadius;
+
+  circle.position.y = circleY;
+}
+
+//Return radius given a latitude
+function latitudeRadius() {
+  return parameters.sphereRadius * Math.cos(parameters.latitude);
+}
+
+//Return Y position
+function yPosition() {
+  return parameters.sphereRadius * Math.sin(parameters.latitude);
+}
+
 function createSphere() {
   let radius = 1;
   let segments = 64;
   let geometry = new THREE.SphereGeometry(radius, segments, segments);
-  let material = new THREE.MeshStandardMaterial( { color: 0x0066ff } );
+  let material = new THREE.MeshStandardMaterial({color: 0x0066ff});
   let mesh = new THREE.Mesh(geometry, material);
-  mesh.name = 'sphere'
+  mesh.name = 'sphere';
 
-  const edgesGeometry = new THREE.EdgesGeometry(geometry );
-  const wireframe = new THREE.LineSegments(edgesGeometry, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
+  const edgesGeometry = new THREE.EdgesGeometry(geometry);
+  const wireframe = new THREE.LineSegments(edgesGeometry, new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 0.5}));
   mesh.add(wireframe);
 
+  return mesh;
+}
+
+function createCircle() {
+  let radius = 1;
+  let segments = 64;
+  let geometry = new THREE.CircleGeometry(radius, segments);
+  let edgesGeometry = new THREE.EdgesGeometry(geometry);
+  let material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth: 4});
+  let mesh = new THREE.LineSegments(edgesGeometry, material);
+  mesh.name = 'circle';
+  mesh.rotation.x = Math.PI / 2.;
   return mesh;
 }
 
