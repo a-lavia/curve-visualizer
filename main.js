@@ -18,7 +18,7 @@ var scene = new THREE.Scene();
 var width = 5;
 var height = 5;
 var worldCamera = new THREE.OrthographicCamera(width/-2, width/2, height/2, height/-2, 0, 20000);
-var observerCamera = new THREE.PerspectiveCamera(45, 1, 0.001, 10000);
+var observerCamera = new THREE.PerspectiveCamera(45, 1, 0.01, 10);
 
 var renderer = new THREE.WebGLRenderer({antialias: true});
 var orbitControls = new THREE.OrbitControls(worldCamera, renderer.domElement);
@@ -41,6 +41,7 @@ function initScene() {
   scene.add(createSphere());
   scene.add(createCircle());
   scene.add(createBox());
+  //scene.add(createCameraHelper());
 }
 
 function updateScene() {
@@ -69,11 +70,19 @@ function updateCircle() {
 
 function updateObserver() {
   let observer = scene.getObjectByName('box');
-  observer.position.copy(latLonToXYZ());
+  let r = parameters.sphereRadius;
   let lat = parameters.latitude;
   let lon = parameters.longitude;
-  observer.rotation.y = -parameters.longitude;
-  observer.rotation.z = parameters.latitude;
+  observer.position.copy(latLonToXYZ(r, lat, lon));
+  observer.rotation.y = -lon;
+  observer.rotation.z = lat;
+
+  observerCamera.position.copy(latLonToXYZ(r+0.01, lat, lon));
+  observerCamera.rotation.x = 0;
+  observerCamera.rotation.z = lat;
+  observerCamera.rotation.y = -lon;
+  observerCamera.rotateZ(-Math.PI/2);
+
 }
 
 //Return radius given a latitude
@@ -86,11 +95,8 @@ function yPosition() {
   return parameters.sphereRadius * Math.sin(parameters.latitude);
 }
 
-function latLonToXYZ() {
+function latLonToXYZ(r, lat, lon) {
   let xyz = new THREE.Vector3();
-  let r = parameters.sphereRadius;
-  let lat = parameters.latitude;
-  let lon = parameters.longitude;
   xyz.x = r * Math.cos(lat) * Math.cos(lon);
   xyz.y = r * Math.sin(lat);
   xyz.z = r * Math.cos(lat) * Math.sin(lon);
@@ -114,7 +120,7 @@ function createSphere() {
 
 function createCircle() {
   let radius = 1;
-  let segments = 64;
+  let segments = 128;
   let geometry = new THREE.CircleGeometry(radius, segments);
   let edgesGeometry = new THREE.EdgesGeometry(geometry);
   let material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth: 4});
@@ -127,15 +133,27 @@ function createCircle() {
 function createBox() {
   let geometry = new THREE.BoxGeometry(0.1, 0.025, 0.025);
   geometry.translate(0.05, 0, 0);
-  let material = new THREE.MeshStandardMaterial({color: 0x666666 });
+  let material = new THREE.MeshStandardMaterial({color: 0xff0000 });
   let mesh = new THREE.Mesh(geometry, material);
   mesh.name = 'box';
 
   return mesh;
 }
 
+function createCameraHelper() {
+  let cameraHelper = new THREE.CameraHelper(observerCamera);
+  cameraHelper.name = 'cameraHelper';
+  return cameraHelper;
+}
+
+var clock = new THREE.Clock();
+
 function render () {
   requestAnimationFrame(render);
+
+  let delta = clock.getDelta();
+  parameters.longitude+=0.25*delta/latitudeRadius();
+  updateScene();
 
   renderer.setViewport(0, 0, dimWidth, Math.floor(dimHeight / 2));
   renderer.setScissor(0, 0, dimWidth, Math.floor(dimHeight / 2));
