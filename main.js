@@ -21,6 +21,7 @@ var worldCamera = new THREE.OrthographicCamera(width/-2, width/2, height/2, heig
 var observerCamera = new THREE.PerspectiveCamera(45, 1, 0.001, 10000);
 
 var renderer = new THREE.WebGLRenderer({antialias: true});
+var orbitControls = new THREE.OrbitControls(worldCamera, renderer.domElement);
 
 function initCanvas() {
   renderer.setSize(dimWidth, dimHeight);
@@ -120,7 +121,7 @@ function createCircle() {
 }
 
 function createBox() {
-  let geometry = new THREE.BoxGeometry(0.1, 0.125, 0.125);
+  let geometry = new THREE.BoxGeometry(0.1, 0.025, 0.025);
   geometry.translate(0.05, 0, 0);
   let material = new THREE.MeshStandardMaterial({color: 0x666666 });
   let mesh = new THREE.Mesh(geometry, material);
