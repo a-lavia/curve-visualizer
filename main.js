@@ -70,6 +70,10 @@ function updateCircle() {
 function updateObserver() {
   let observer = scene.getObjectByName('box');
   observer.position.copy(latLonToXYZ());
+  let lat = parameters.latitude;
+  let lon = parameters.longitude;
+  observer.rotation.y = -parameters.longitude;
+  observer.rotation.z = parameters.latitude;
 }
 
 //Return radius given a latitude
