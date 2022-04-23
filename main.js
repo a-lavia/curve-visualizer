@@ -1,6 +1,7 @@
 const parameters = {
   sphereRadius: 1.0,
   latitude: 0.0,
+  longitude: 0.0,
   observerHeight: 1.0,
   targetHeight: 1.0,
   targetDistance: 1.0
@@ -38,11 +39,13 @@ function initScene() {
 
   scene.add(createSphere());
   scene.add(createCircle());
+  scene.add(createBox());
 }
 
 function updateScene() {
   updateSphere();
   updateCircle();
+  updateObserver();
 }
 
 function updateSphere() {
@@ -63,6 +66,11 @@ function updateCircle() {
   circle.position.y = circleY;
 }
 
+function updateObserver() {
+  let observer = scene.getObjectByName('box');
+  observer.position.copy(latLonToXYZ());
+}
+
 //Return radius given a latitude
 function latitudeRadius() {
   return parameters.sphereRadius * Math.cos(parameters.latitude);
@@ -71,6 +79,17 @@ function latitudeRadius() {
 //Return Y position
 function yPosition() {
   return parameters.sphereRadius * Math.sin(parameters.latitude);
+}
+
+function latLonToXYZ() {
+  let xyz = new THREE.Vector3();
+  let r = parameters.sphereRadius;
+  let lat = parameters.latitude;
+  let lon = parameters.longitude;
+  xyz.x = r * Math.cos(lat) * Math.cos(lon);
+  xyz.y = r * Math.sin(lat);
+  xyz.z = r * Math.cos(lat) * Math.sin(lon);
+  return xyz;
 }
 
 function createSphere() {
@@ -97,6 +116,16 @@ function createCircle() {
   let mesh = new THREE.LineSegments(edgesGeometry, material);
   mesh.name = 'circle';
   mesh.rotation.x = Math.PI / 2.;
+  return mesh;
+}
+
+function createBox() {
+  let geometry = new THREE.BoxGeometry(0.1, 0.125, 0.125);
+  geometry.translate(0.05, 0, 0);
+  let material = new THREE.MeshStandardMaterial({color: 0x666666 });
+  let mesh = new THREE.Mesh(geometry, material);
+  mesh.name = 'box';
+
   return mesh;
 }
 
