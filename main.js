@@ -1,5 +1,5 @@
 const parameters = {
-  planetRadius: 1.0,
+  sphereRadius: 1.0,
   observerHeight: 1.0,
   targetHeight: 1.0,
   targetDistance: 1.0
@@ -9,6 +9,7 @@ const parameters = {
 var dimWidth = 512;
 var dimHeight = 1024;
 
+//Scene
 var scene = new THREE.Scene();
 
 //World units
@@ -22,11 +23,18 @@ var renderer = new THREE.WebGLRenderer({antialias: true});
 function initCanvas() {
   renderer.setSize(dimWidth, dimHeight);
   renderer.setClearColor(0x93d3fb, 1);
-  document.body.appendChild(renderer.domElement).setAttribute("align", "center");
+  document.body.appendChild(renderer.domElement);
 }
 
 function initScene() {
   scene.add(createSphere());
+}
+
+function updateSphere() {
+  let sphere = scene.getObjectByName('sphere');
+  sphere.scale.x = parameters.sphereRadius;
+  sphere.scale.y = parameters.sphereRadius;
+  sphere.scale.z = parameters.sphereRadius;
 }
 
 function createSphere() {
@@ -35,10 +43,11 @@ function createSphere() {
   let geometry = new THREE.SphereGeometry(radius, segments, segments);
   let material = new THREE.MeshStandardMaterial( { color: 0x0066ff } );
   let mesh = new THREE.Mesh(geometry, material);
+  mesh.name = 'sphere'
 
   const edgesGeometry = new THREE.EdgesGeometry(geometry );
   const wireframe = new THREE.LineSegments(edgesGeometry, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
-  mesh.add( wireframe );
+  mesh.add(wireframe);
 
   return mesh;
 }
