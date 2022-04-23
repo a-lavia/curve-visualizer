@@ -1,5 +1,6 @@
 const parameters = {
   sphereRadius: 1.0,
+  wireframe: true,
   latitude: 0.0,
   longitude: 0.0,
   observerHeight: 1.0,
@@ -39,6 +40,7 @@ function initScene() {
   scene.add(directionalLight);
 
   scene.add(createSphere());
+  if (parameters.wireframe) scene.add(createWireframe());
   scene.add(createCircle());
   scene.add(createBox());
   //scene.add(createCameraHelper());
@@ -48,6 +50,16 @@ function updateScene() {
   updateSphere();
   updateCircle();
   updateObserver();
+}
+
+function toggleWireframe() {
+  let sphere = scene.getObjectByName('sphere');
+  let wireframe = sphere.getObjectByName('wireframe');
+  if (wireframe) {
+    sphere.remove(wireframe);
+  } else {
+    createWireframe();
+  }
 }
 
 function updateSphere() {
@@ -111,11 +123,15 @@ function createSphere() {
   let mesh = new THREE.Mesh(geometry, material);
   mesh.name = 'sphere';
 
-  const edgesGeometry = new THREE.EdgesGeometry(geometry);
-  const wireframe = new THREE.LineSegments(edgesGeometry, new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 0.5}));
-  mesh.add(wireframe);
-
   return mesh;
+}
+
+function createWireframe() {
+  let sphere = scene.getObjectByName('sphere');
+  const edgesGeometry = new THREE.EdgesGeometry(sphere.geometry);
+  const wireframe = new THREE.LineSegments(edgesGeometry, new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 0.5}));
+  wireframe.name = 'wireframe';
+  sphere.add(wireframe);
 }
 
 function createCircle() {
@@ -152,7 +168,7 @@ function render () {
   requestAnimationFrame(render);
 
   let delta = clock.getDelta();
-  parameters.longitude+=0.25*delta/latitudeRadius();
+  parameters.longitude-=0.25*delta/latitudeRadius();
   updateScene();
 
   renderer.setViewport(0, 0, dimWidth, Math.floor(dimHeight / 2));
