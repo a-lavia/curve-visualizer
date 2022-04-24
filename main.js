@@ -1,5 +1,6 @@
 const parameters = {
   sphereRadius: 1.0,
+  sphereRotation: 0.0,
   wireframe: true,
   latitude: 0.0,
   longitude: 0.0,
@@ -16,10 +17,10 @@ var dimHeight = 1024;
 var scene = new THREE.Scene();
 
 //World units
-var width = 5;
-var height = 5;
-var worldCamera = new THREE.OrthographicCamera(width/-2, width/2, height/2, height/-2, 0, 20000);
-var observerCamera = new THREE.PerspectiveCamera(45, 1, 0.01, 10);
+var width = 4;
+var height = 4;
+var worldCamera = new THREE.OrthographicCamera(width/-2, width/2, height/2, height/-2, 0, 200);
+var observerCamera = new THREE.PerspectiveCamera(45, 1, 0.001, 10);
 
 var renderer = new THREE.WebGLRenderer({antialias: true});
 var orbitControls = new THREE.OrbitControls(worldCamera, renderer.domElement);
@@ -27,7 +28,7 @@ var orbitControls = new THREE.OrbitControls(worldCamera, renderer.domElement);
 function initCanvas() {
   renderer.setSize(dimWidth, dimHeight);
   renderer.setClearColor(0x93d3fb, 1);
-  worldCamera.position.z = 20;
+  worldCamera.position.z = 100;
   document.body.appendChild(renderer.domElement);
 }
 
@@ -40,9 +41,10 @@ function initScene() {
   scene.add(directionalLight);
 
   scene.add(createSphere());
-  if (parameters.wireframe) scene.add(createWireframe());
+  if (parameters.wireframe) toggleWireframe();
   scene.add(createCircle());
   scene.add(createBox());
+  createCircle2();
   //scene.add(createCameraHelper());
 }
 
@@ -67,6 +69,8 @@ function updateSphere() {
   sphere.scale.x = parameters.sphereRadius;
   sphere.scale.y = parameters.sphereRadius;
   sphere.scale.z = parameters.sphereRadius;
+
+  sphere.rotation.x = parameters.sphereRotation;
 }
 
 function updateCircle() {
@@ -143,6 +147,21 @@ function createCircle() {
   let mesh = new THREE.LineSegments(edgesGeometry, material);
   mesh.name = 'circle';
   mesh.rotation.x = Math.PI / 2.;
+  return mesh;
+}
+
+function createCircle2() {
+  let sphere = scene.getObjectByName('box');
+  let radius = 1.001;
+  let segments = 128;
+  let geometry = new THREE.CircleGeometry(radius, segments);
+  let edgesGeometry = new THREE.EdgesGeometry(geometry);
+  edgesGeometry.translate(-1,0,0);
+  let material = new THREE.LineBasicMaterial({color: 0xff0000, linewidth: 4});
+  let mesh = new THREE.LineSegments(edgesGeometry, material);
+  mesh.rotation.x = Math.PI/2.;
+  mesh.name = 'circle2';
+  sphere.add(mesh);
   return mesh;
 }
 
