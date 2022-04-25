@@ -2,6 +2,7 @@ const parameters = {
   sphereRadius: 1.0,
   sphereRotation: 0.0,
   wireframe: true,
+  maxCircle: false,
   latitude: 0.0,
   longitude: 0.0,
   observerHeight: 1.0,
@@ -20,7 +21,7 @@ var scene = new THREE.Scene();
 var width = 4;
 var height = 4;
 var worldCamera = new THREE.OrthographicCamera(width/-2, width/2, height/2, height/-2, 0, 200);
-var observerCamera = new THREE.PerspectiveCamera(45, 1, 0.001, 10);
+var observerCamera = new THREE.PerspectiveCamera(45, 0.01, 0.001, 10);
 
 var renderer = new THREE.WebGLRenderer({antialias: true});
 var orbitControls = new THREE.OrbitControls(worldCamera, renderer.domElement);
@@ -28,11 +29,12 @@ var orbitControls = new THREE.OrbitControls(worldCamera, renderer.domElement);
 function initCanvas() {
   renderer.setSize(dimWidth, dimHeight);
   renderer.setClearColor(0x93d3fb, 1);
-  worldCamera.position.z = 100;
   document.body.appendChild(renderer.domElement);
 }
 
 function initScene() {
+  worldCamera.position.z = 100;
+
   let ambientLight = new THREE.AmbientLight(0x666666);
   scene.add(ambientLight);
 
@@ -44,8 +46,10 @@ function initScene() {
   if (parameters.wireframe) toggleWireframe();
   scene.add(createCircle());
   scene.add(createBox());
-  createCircle2();
+  if (parameters.maxCircle) createCircle2();
   //scene.add(createCameraHelper());
+
+  updateScene();
 }
 
 function updateScene() {
@@ -61,6 +65,16 @@ function toggleWireframe() {
     sphere.remove(wireframe);
   } else {
     createWireframe();
+  }
+}
+
+function toggleMaxCircle() {
+  let box = scene.getObjectByName('box');
+  let circle = box.getObjectByName('circle');
+  if (circle) {
+    box.remove(circle);
+  } else {
+    createCircle2();
   }
 }
 
@@ -89,9 +103,17 @@ function updateObserver() {
   let r = parameters.sphereRadius;
   let lat = parameters.latitude;
   let lon = parameters.longitude;
+  let scale = parameters.sphereRadius;
   observer.position.copy(latLonToXYZ(r, lat, lon));
   observer.rotation.y = -lon;
   observer.rotation.z = lat;
+
+  let circle = observer.getObjectByName('circle');
+  if (circle) {
+    circle.scale.x = scale;
+    circle.scale.y = scale;
+    circle.scale.z = scale;
+  }
 
   observerCamera.position.copy(latLonToXYZ(r+0.01, lat, lon));
   observerCamera.rotation.x = 0;
@@ -121,7 +143,7 @@ function latLonToXYZ(r, lat, lon) {
 
 function createSphere() {
   let radius = 1;
-  let segments = 64;
+  let segments = 128;
   let geometry = new THREE.SphereGeometry(radius, segments, segments);
   let material = new THREE.MeshStandardMaterial({color: 0x0066ff});
   let mesh = new THREE.Mesh(geometry, material);
@@ -151,8 +173,8 @@ function createCircle() {
 }
 
 function createCircle2() {
-  let sphere = scene.getObjectByName('box');
-  let radius = 1.001;
+  let box = scene.getObjectByName('box');
+  let radius = 1;
   let segments = 128;
   let geometry = new THREE.CircleGeometry(radius, segments);
   let edgesGeometry = new THREE.EdgesGeometry(geometry);
@@ -160,8 +182,8 @@ function createCircle2() {
   let material = new THREE.LineBasicMaterial({color: 0xff0000, linewidth: 4});
   let mesh = new THREE.LineSegments(edgesGeometry, material);
   mesh.rotation.x = Math.PI/2.;
-  mesh.name = 'circle2';
-  sphere.add(mesh);
+  mesh.name = 'circle';
+  box.add(mesh);
   return mesh;
 }
 
